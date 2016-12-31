@@ -28,7 +28,7 @@ public class MjAPI {
     public static final long ONE_MINECRAFT_JOULE = 1 * 1000L * 1000L;
     /** The same as {@link #ONE_MINECRAFT_JOULE}, but a shorter field name */
     public static final long MJ = ONE_MINECRAFT_JOULE;
-
+    
     /** The decimal format used to display values of MJ to the player. Note that this */
     public static final DecimalFormat MJ_DISPLAY_FORMAT = new DecimalFormat("###0.##");
 
