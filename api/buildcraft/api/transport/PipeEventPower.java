@@ -51,14 +51,14 @@ public abstract class PipeEventPower extends PipeEvent {
             this.powerLoss = powerLoss;
         }
 
-        /** The percentage resistance of the power pipe (as in, percentage of current power going through the pipe).
-         * Should be a number between 0 and {@link MjAPI#MJ} */
+        /** The percentage resistance of the power pipe (percentage of current power going through the pipe that will be
+         * lost). Should be a number between 0 and {@link MjAPI#MJ} */
         public long getPowerResistance() {
             return this.powerResistance;
         }
 
-        /** The percentage resistance of the power pipe (as in, percentage of current power going through the pipe).
-         * Should be a number between 0 and {@link MjAPI#MJ} */
+        /** The percentage resistance of the power pipe (percentage of current power going through the pipe that will be
+         * lost). Should be a number between 0 and {@link MjAPI#MJ} */
         public void setPowerResistance(long powerResistance) {
             this.powerResistance = powerResistance;
         }
