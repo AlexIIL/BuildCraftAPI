@@ -93,14 +93,16 @@ public abstract class PipeEventItem extends PipeEvent {
     // ############################
 
     /** Fired after {@link TryInsert} (if some items were allowed in) to determine what sides are the items NOT allowed
-     * to go to, and the order of precedence for the allowed sides. */
+     * to go to, and the order of priority for the allowed sides. */
     public static class SideCheck extends PipeEventItem {
         public final EnumDyeColor colour;
         public final EnumFacing from;
         @Nonnull
         public final ItemStack stack;
 
-        private final int[] precedence = new int[6];
+        /** The priorities of each side. Stored inversely to the values given, so a higher priority will have a lower
+         * value than a lower priority. */
+        private final int[] priority = new int[6];
         private final EnumSet<EnumFacing> allowed = EnumSet.allOf(EnumFacing.class);
 
         public SideCheck(IPipeHolder holder, IFlowItems flow, EnumDyeColor colour, EnumFacing from, @Nonnull ItemStack stack) {
@@ -117,6 +119,8 @@ public abstract class PipeEventItem extends PipeEvent {
             return allowed.contains(side);
         }
 
+        /** Disallows the specific side(s) from being a destination for the item. If no sides are allowed, then
+         * {@link TryBounce} will be fired to test if the item can bounce back. */
         public void disallow(EnumFacing... sides) {
             for (EnumFacing side : sides) {
                 allowed.remove(side);
@@ -135,41 +139,42 @@ public abstract class PipeEventItem extends PipeEvent {
             allowed.clear();
         }
 
-        public void increasePrecedence(EnumFacing side) {
-            increasePrecedence(side, 1);
+        public void increasePriority(EnumFacing side) {
+            increasePriority(side, 1);
         }
 
-        public void increasePrecedence(EnumFacing side, int by) {
-            precedence[side.ordinal()] -= by;
+        public void increasePriority(EnumFacing side, int by) {
+            priority[side.ordinal()] -= by;
         }
 
-        public void decreasePrecedence(EnumFacing side) {
-            decreasePrecedence(side, 1);
+        public void decreasePriority(EnumFacing side) {
+            decreasePriority(side, 1);
         }
 
-        public void decreasePrecedence(EnumFacing side, int by) {
-            increasePrecedence(side, -by);
+        public void decreasePriority(EnumFacing side, int by) {
+            increasePriority(side, -by);
         }
 
         public List<EnumSet<EnumFacing>> getOrder() {
-            if (allowed.isEmpty()) {
-                return ImmutableList.of();
-            }
-            if (allowed.size() == 1) {
-                return ImmutableList.of(allowed);
+            // Skip the calculations if the size is simple
+            switch (allowed.size()) {
+                case 0:
+                    return ImmutableList.of();
+                case 1:
+                    return ImmutableList.of(allowed);
             }
             outer_loop: while (true) {
-                int val = precedence[0];
-                for (int i = 1; i < precedence.length; i++) {
-                    if (precedence[i] != val) {
+                int val = priority[0];
+                for (int i = 1; i < priority.length; i++) {
+                    if (priority[i] != val) {
                         break outer_loop;
                     }
                 }
-                // No need to work out the order when all destinations have the same precedence
+                // No need to work out the order when all destinations have the same priority
                 return ImmutableList.of(allowed);
             }
 
-            int[] ordered = Arrays.copyOf(precedence, 6);
+            int[] ordered = Arrays.copyOf(priority, 6);
             Arrays.sort(ordered);
             int last = 0;
             List<EnumSet<EnumFacing>> list = Lists.newArrayList();
@@ -182,7 +187,7 @@ public abstract class PipeEventItem extends PipeEvent {
                 EnumSet<EnumFacing> set = EnumSet.noneOf(EnumFacing.class);
                 for (EnumFacing face : EnumFacing.VALUES) {
                     if (allowed.contains(face)) {
-                        if (precedence[face.ordinal()] == current) {
+                        if (priority[face.ordinal()] == current) {
                             set.add(face);
                         }
                     }
