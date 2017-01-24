@@ -53,6 +53,12 @@ public abstract class PipeEventItem extends PipeEvent {
             this.attempting = attempting;
             this.accepted = attempting.getCount();
         }
+
+        /** Stops the item from being accepted. */
+        @Override
+        public void cancel() {
+            super.cancel();
+        }
     }
 
     /** Fired whenever an item reaches the centre of a pipe. Note that you *can* change the itemstack or the colour. */
@@ -92,8 +98,23 @@ public abstract class PipeEventItem extends PipeEvent {
     //
     // ############################
 
-    /** Fired after {@link TryInsert} (if some items were allowed in) to determine what sides are the items NOT allowed
-     * to go to, and the order of priority for the allowed sides. */
+    /** Fired after {@link TryInsert} (if some items were allowed in) to modify the incoming itemstack's colour. */
+    public static class BeforeInsert extends PipeEventItem {
+        public final EnumFacing from;
+        @Nonnull
+        public final ItemStack stack;
+        public EnumDyeColor colour;
+
+        public BeforeInsert(IPipeHolder holder, IFlowItems flow, EnumDyeColor colour, EnumFacing from, @Nonnull ItemStack stack) {
+            super(false, holder, flow);
+            this.from = from;
+            this.colour = colour;
+            this.stack = stack;
+        }
+    }
+
+    /** Fired after {@link BeforeInsert} (if some items were allowed in) to determine what sides are the items NOT
+     * allowed to go to, and the order of priority for the allowed sides. */
     public static class SideCheck extends PipeEventItem {
         public final EnumDyeColor colour;
         public final EnumFacing from;
