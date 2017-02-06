@@ -61,34 +61,58 @@ public abstract class PipeEventItem extends PipeEvent {
         }
     }
 
-    /** Fired whenever an item reaches the centre of a pipe. Note that you *can* change the itemstack or the colour. */
-    public static class ReachCenter extends PipeEventItem {
-        @Nonnull
-        public final ItemStack stack;
-        public final EnumFacing from;
+    public static abstract class ReachDest extends PipeEventItem {
         public EnumDyeColor colour;
+        @Nonnull
+        private ItemStack stack;
 
-        public ReachCenter(IPipeHolder holder, IFlowItems flow, @Nonnull ItemStack stack, EnumFacing from, EnumDyeColor colour) {
+        public ReachDest(IPipeHolder holder, IFlowItems flow, EnumDyeColor colour, @Nonnull ItemStack stack) {
             super(holder, flow);
-            this.stack = stack;
-            this.from = from;
             this.colour = colour;
+            this.stack = stack;
+        }
+
+        @Nonnull
+        public ItemStack getStack() {
+            return this.stack;
+        }
+
+        public void setStack(ItemStack stack) {
+            if (stack == null) {
+                throw new NullPointerException("stack");
+            } else {
+                this.stack = stack;
+            }
+        }
+    }
+
+    /** Fired after {@link TryInsert} (if some items were allowed in) to modify the incoming itemstack or its colour. */
+    public static class OnInsert extends ReachDest {
+        public final EnumFacing from;
+
+        public OnInsert(IPipeHolder holder, IFlowItems flow, EnumDyeColor colour, @Nonnull ItemStack stack, EnumFacing from) {
+            super(holder, flow, colour, stack);
+            this.from = from;
+        }
+    }
+
+    /** Fired whenever an item reaches the centre of a pipe. Note that you *can* change the itemstack or the colour. */
+    public static class ReachCenter extends ReachDest {
+        public final EnumFacing from;
+
+        public ReachCenter(IPipeHolder holder, IFlowItems flow, EnumDyeColor colour, @Nonnull ItemStack stack, EnumFacing from) {
+            super(holder, flow, colour, stack);
+            this.from = from;
         }
     }
 
     /** Fired whenever an item reaches the end of a pipe. Note that you *can* change the itemstack or the colour. */
-    public static class ReachEnd extends PipeEventItem {
-        @Nonnull
-        public final ItemStack stack;
-        public final EnumFacing from, to;
-        public EnumDyeColor colour;
+    public static class ReachEnd extends ReachDest {
+        public final EnumFacing to;
 
-        public ReachEnd(IPipeHolder holder, IFlowItems flow, @Nonnull ItemStack stack, EnumFacing from, EnumFacing to, EnumDyeColor colour) {
-            super(holder, flow);
-            this.stack = stack;
-            this.from = from;
+        public ReachEnd(IPipeHolder holder, IFlowItems flow, EnumDyeColor colour, @Nonnull ItemStack stack, EnumFacing to) {
+            super(holder, flow, colour, stack);
             this.to = to;
-            this.colour = colour;
         }
     }
 
@@ -98,23 +122,8 @@ public abstract class PipeEventItem extends PipeEvent {
     //
     // ############################
 
-    /** Fired after {@link TryInsert} (if some items were allowed in) to modify the incoming itemstack's colour. */
-    public static class BeforeInsert extends PipeEventItem {
-        public final EnumFacing from;
-        @Nonnull
-        public final ItemStack stack;
-        public EnumDyeColor colour;
-
-        public BeforeInsert(IPipeHolder holder, IFlowItems flow, EnumDyeColor colour, EnumFacing from, @Nonnull ItemStack stack) {
-            super(false, holder, flow);
-            this.from = from;
-            this.colour = colour;
-            this.stack = stack;
-        }
-    }
-
-    /** Fired after {@link BeforeInsert} (if some items were allowed in) to determine what sides are the items NOT
-     * allowed to go to, and the order of priority for the allowed sides. */
+    /** Fired after {@link ReachCenter} to determine what sides are the items NOT allowed to go to, and the order of
+     * priority for the allowed sides. */
     public static class SideCheck extends PipeEventItem {
         public final EnumDyeColor colour;
         public final EnumFacing from;
