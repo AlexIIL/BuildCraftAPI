@@ -100,7 +100,7 @@ public final class PipeDefinition {
             return this;
         }
 
-        /** Sets {@link #textureSuffixes} to the given array, or to <code>{""}<code> if the argument list is empty or
+        /** Sets {@link #textureSuffixes} to the given array, or to <code>{""}</code> if the argument list is empty or
          * null.
          * 
          * @return this. */
