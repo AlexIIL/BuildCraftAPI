@@ -7,12 +7,18 @@ package buildcraft.api.transport;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public interface IStripesHandlerItem {
 
-    /** @param world
+    /** Called to handle the given {@link ItemStack} within the world. Note that the player's inventory will be empty,
+     * except that the target stack will be set into its {@link EnumHand#MAIN_HAND}. Any items left in the players
+     * inventory will be returned back through the activator with
+     * {@link IStripesActivator#sendItem(ItemStack, EnumFacing)}
+     * 
+     * @param world
      * @param pos
      * @param direction
      * @param stack The {@link ItemStack} being used

@@ -18,7 +18,8 @@ public interface IStripesRegistry {
 
     void addHandler(IStripesHandlerBlock handler, HandlerPriority priority);
 
-    /** @return True if a handler handled the itemstack, false otherwise (and so nothing has been done) */
+    /** @param pos The position of the stripes pipe.
+     * @return True if a handler handled the itemstack, false otherwise (and so nothing has been done) */
     boolean handleItem(World world, BlockPos pos, EnumFacing direction, ItemStack stack, EntityPlayer player, IStripesActivator activator);
 
     /** @return True if a handler broke a block, false otherwise (and so nothing has been done) */
