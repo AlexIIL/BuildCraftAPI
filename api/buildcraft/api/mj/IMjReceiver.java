@@ -16,4 +16,9 @@ public interface IMjReceiver extends IMjConnector {
      * @param simulate If true then just pretend you received power- don't actually change any of your internal state.
      * @return The excess power. */
     long receivePower(long microJoules, boolean simulate);
+
+    /** @return True if this {@link IMjReceiver} can receive power right now. */
+    default boolean canReceive() {
+        return true;
+    }
 }

@@ -1,5 +1,7 @@
 package buildcraft.api.transport.pipe;
 
+import javax.annotation.Nonnull;
+
 import com.mojang.authlib.GameProfile;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -8,6 +10,8 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+
+import net.minecraftforge.common.capabilities.Capability;
 
 import buildcraft.api.statements.containers.IRedstoneStatementContainer;
 import buildcraft.api.transport.IWireManager;
@@ -28,6 +32,10 @@ public interface IPipeHolder extends IRedstoneStatementContainer {
     TileEntity getNeighbouringTile(EnumFacing side);
 
     IPipe getNeighbouringPipe(EnumFacing side);
+
+    /** Gets the given capability going outwards from the pipe. This will test the
+     * {@link PipePluggable#getInternalCapability(Capability)} first, and the look at the neighbouring tile. */
+    <T> T getCapabilityFromPipe(EnumFacing side, @Nonnull Capability<T> capability);
 
     IWireManager getWireManager();
 
