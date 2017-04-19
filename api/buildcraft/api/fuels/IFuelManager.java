@@ -14,6 +14,7 @@ public interface IFuelManager {
 
     IFuel addFuel(Fluid fluid, long powerPerCycle, int totalBurningTime);
 
+    /** @param residue The residue fluidstack, per bucket of the original fuel. */
     IDirtyFuel addDirtyFuel(Fluid fuel, long powerPerCycle, int totalBurningTime, FluidStack residue);
 
     Collection<IFuel> getFuels();

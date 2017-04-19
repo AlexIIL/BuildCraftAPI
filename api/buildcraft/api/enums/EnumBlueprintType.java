@@ -1,13 +1,18 @@
 package buildcraft.api.enums;
 
+import java.util.Locale;
+
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.IStringSerializable;
 
 import buildcraft.api.items.IBlueprintItem;
 
-public enum EnumBlueprintType {
+public enum EnumBlueprintType implements IStringSerializable {
     NONE,
     BLUEPRINT,
     TEMPLATE;
+
+    public final String lowerCaseName = name().toLowerCase(Locale.ROOT);
 
     public static EnumBlueprintType valueOf(int index) {
         if (index <= 0 || index >= values().length) {
@@ -25,5 +30,10 @@ public enum EnumBlueprintType {
         } else {
             return NONE;
         }
+    }
+
+    @Override
+    public String getName() {
+        return lowerCaseName;
     }
 }
