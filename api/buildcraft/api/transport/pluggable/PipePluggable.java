@@ -5,6 +5,7 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -116,6 +117,9 @@ public abstract class PipePluggable {
         return 0;
     }
 
+    /**
+     * PipePluggable version of {@link Block#canBeConnectedTo(net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, EnumFacing)}.
+     */
     public boolean canBeConnected() {
         return false;
     }

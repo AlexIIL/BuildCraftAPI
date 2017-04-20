@@ -16,5 +16,5 @@ public interface IAssemblyRecipeProvider {
      * null. Note that this will *most likely* be slow to check everything, so you should cache the return value and
      * re-use it when you can. */
     @Nonnull
-    List<AssemblyRecipe> getRecipesFor(@Nonnull NonNullList<ItemStack> possibleIn);
+    List<AssemblyRecipe> getRecipesFor(@Nonnull NonNullList<ItemStack> possible);
 }
