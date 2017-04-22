@@ -12,21 +12,27 @@ import net.minecraftforge.fluids.FluidStack;
 public interface IRefineryRecipeManager {
     IHeatableRecipe createHeatingRecipe(FluidStack in, FluidStack out, int heatFrom, int heatTo, int ticks);
 
-    IHeatableRecipe addHeatableRecipe(FluidStack in, FluidStack out, int heatFrom, int heatTo, int ticks, boolean replaceExisting);
+    default IHeatableRecipe addHeatableRecipe(FluidStack in, FluidStack out, int heatFrom, int heatTo, int ticks) {
+        return getHeatableRegistry().addRecipe(createHeatingRecipe(in, out, heatFrom, heatTo, ticks));
+    }
 
     ICoolableRecipe createCoolableRecipe(FluidStack in, FluidStack out, int heatFrom, int heatTo, int ticks);
 
-    ICoolableRecipe addCoolableRecipe(FluidStack in, FluidStack out, int heatFrom, int heatTo, int ticks, boolean replaceExisting);
+    default ICoolableRecipe addCoolableRecipe(FluidStack in, FluidStack out, int heatFrom, int heatTo, int ticks) {
+        return getCoolableRegistry().addRecipe(createCoolableRecipe(in, out, heatFrom, heatTo, ticks));
+    }
 
-    IDistilationRecipe createDistilationRecipe(FluidStack in, FluidStack outGas, FluidStack outLiquid, int ticks);
+    IDistillationRecipe createDistillationRecipe(FluidStack in, FluidStack outGas, FluidStack outLiquid, long powerRequired);
 
-    IDistilationRecipe addDistilationRecipe(FluidStack in, FluidStack outGas, FluidStack outLiquid, int ticks, boolean replaceExisting);
+    default IDistillationRecipe addDistillationRecipe(FluidStack in, FluidStack outGas, FluidStack outLiquid, long powerRequired) {
+        return getDistilationRegistry().addRecipe(createDistillationRecipe(in, outGas, outLiquid, powerRequired));
+    }
 
     IRefineryRegistry<IHeatableRecipe> getHeatableRegistry();
 
     IRefineryRegistry<ICoolableRecipe> getCoolableRegistry();
 
-    IRefineryRegistry<IDistilationRecipe> getDistilationRegistry();
+    IRefineryRegistry<IDistillationRecipe> getDistilationRegistry();
 
     public interface IRefineryRegistry<R extends IRefineryRecipe> {
         /** @return an unmodifiable collection containing all of the distillation recipes that satisfy the given
@@ -37,28 +43,25 @@ public interface IRefineryRecipeManager {
         Collection<R> getAllRecipes();
 
         @Nullable
-        R getRecipeForInput(FluidStack fluid);
+        R getRecipeForInput(@Nullable FluidStack fluid);
 
         Collection<R> removeRecipes(Predicate<R> toRemove);
 
-        /** Adds the given recipe to the registry.
+        /** Adds the given recipe to the registry. Note that this will remove any existing recipes for the passed
+         * recipe's {@link IRefineryRecipe#in()}
          * 
          * @param recipe The recipe to add.
-         * @param replaceExisting If true then an existing recipe that matches {@link IRefineryRecipe#in()} with
-         *            {@link FluidStack#isFluidEqual(FluidStack)} will be replaced. Otherwise the matching recipe will
-         *            be returned and the given recipe will not be added.
-         * @return The recipe that will be returned by {@link #getRecipeForInput(FluidStack)} when given the
-         *         {@link FluidStack} in recipe.in() */
-        R addRecipe(R recipe, boolean replaceExisting);
+         * @return The input recipe. */
+        R addRecipe(R recipe);
     }
 
     public interface IRefineryRecipe {
-        int ticks();
-
         FluidStack in();
     }
 
     public interface IHeatExchangerRecipe extends IRefineryRecipe {
+        int ticks();
+
         @Nullable
         FluidStack out();
 
@@ -71,7 +74,9 @@ public interface IRefineryRecipeManager {
 
     public interface ICoolableRecipe extends IHeatExchangerRecipe {}
 
-    public interface IDistilationRecipe extends IRefineryRecipe {
+    public interface IDistillationRecipe extends IRefineryRecipe {
+        long powerRequired();
+
         FluidStack outGas();
 
         FluidStack outLiquid();
