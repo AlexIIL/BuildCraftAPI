@@ -71,7 +71,7 @@ public class MjAPI {
      * how big or small the value is. */
     public static String formatMjShort(long microJoules) {
         if (microJoules == 0) {
-            return "0 Mj";
+            return "0 MJ";
         }
         long limit = 1;
         final long nextUnitCap = 800;
