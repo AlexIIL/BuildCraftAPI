@@ -20,10 +20,10 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pipe.IPipeHolder.PipeMessageReceiver;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
 public abstract class PipePluggable {
     public final PluggableDefinition definition;
@@ -112,14 +112,17 @@ public abstract class PipePluggable {
         return null;
     }
 
+    /** Called if the {@link IPluggableStaticBaker} returns quads with tint indexes set to
+     * <code>data * 6 + key.side.ordinal()</code>. <code>"data"</code> is passed in here as <code>"tintIndex"</code>.
+     * 
+     * @return The tint index to render the quad with, or -1 for default. */
     @SideOnly(Side.CLIENT)
     public int getBlockColor(int tintIndex) {
-        return 0;
+        return -1;
     }
 
-    /**
-     * PipePluggable version of {@link Block#canBeConnectedTo(net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, EnumFacing)}.
-     */
+    /** PipePluggable version of
+     * {@link Block#canBeConnectedTo(net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, EnumFacing)}. */
     public boolean canBeConnected() {
         return false;
     }
