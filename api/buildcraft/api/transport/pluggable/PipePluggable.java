@@ -126,4 +126,10 @@ public abstract class PipePluggable {
     public boolean canBeConnected() {
         return false;
     }
+
+    /** PipePluggable version of
+     * {@link Block#isBlockSolid(net.minecraft.world.IBlockAccess, net.minecraft.util.math.BlockPos, EnumFacing)} */
+    public boolean isSideSolid() {
+        return false;
+    }
 }
