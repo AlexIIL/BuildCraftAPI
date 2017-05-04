@@ -1,20 +1,15 @@
 package buildcraft.api.mj;
 
-import java.text.DecimalFormat;
-import java.util.concurrent.Callable;
-
-import javax.annotation.Nonnull;
-
-import net.minecraft.nbt.NBTBase;
+import buildcraft.api.core.APIHelper;
+import buildcraft.api.core.CapabilitiesHelper;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
-import net.minecraftforge.common.capabilities.CapabilityManager;
 
-import buildcraft.api.core.APIHelper;
+import javax.annotation.Nonnull;
+import java.text.DecimalFormat;
 
 public class MjAPI {
 
@@ -33,27 +28,6 @@ public class MjAPI {
     public static final DecimalFormat MJ_DISPLAY_FORMAT = new DecimalFormat("#,##0.##");
 
     public static final IMjEffectManager EFFECT_MANAGER = APIHelper.getInstance("", IMjEffectManager.class, NullaryEffectManager.INSTANCE);
-
-    // ###############
-    //
-    // Capabilities
-    //
-    // ###############
-
-    @Nonnull
-    public static final Capability<IMjConnector> CAP_CONNECTOR;
-
-    @Nonnull
-    public static final Capability<IMjReceiver> CAP_RECEIVER;
-
-    @Nonnull
-    public static final Capability<IMjRedstoneReceiver> CAP_REDSTONE_RECEIVER;
-
-    @Nonnull
-    public static final Capability<IMjReadable> CAP_READABLE;
-
-    @Nonnull
-    public static final Capability<IMjPassiveProvider> CAP_PASSIVE_PROVIDER;
 
     // ###############
     //
@@ -98,6 +72,10 @@ public class MjAPI {
         return formatMjInternal(microJoules / (double) limit) + " GMJ";
     }
 
+    private static String formatMjInternal(double val) {
+        return MJ_DISPLAY_FORMAT.format(val);
+    }
+
     // ########################################
     //
     // Null based classes
@@ -111,6 +89,27 @@ public class MjAPI {
         @Override public void createPowerLossEffect(World world, Vec3d center, Vec3d direction, long microJoulesLost) {}
     }
     // @formatter:on
+
+    // ###############
+    //
+    // Capabilities
+    //
+    // ###############
+
+    @Nonnull
+    public static final Capability<IMjConnector> CAP_CONNECTOR;
+
+    @Nonnull
+    public static final Capability<IMjReceiver> CAP_RECEIVER;
+
+    @Nonnull
+    public static final Capability<IMjRedstoneReceiver> CAP_REDSTONE_RECEIVER;
+
+    @Nonnull
+    public static final Capability<IMjReadable> CAP_READABLE;
+
+    @Nonnull
+    public static final Capability<IMjPassiveProvider> CAP_PASSIVE_PROVIDER;
 
     // ####################
     //
@@ -135,50 +134,16 @@ public class MjAPI {
     private static final Capability<IMjPassiveProvider> CAP_PASSIVE_PROVIDER_FIRST = null;
 
     static {
-        registerCapability(IMjConnector.class);
-        registerCapability(IMjReceiver.class);
-        registerCapability(IMjRedstoneReceiver.class);
-        registerCapability(IMjReadable.class);
-        registerCapability(IMjPassiveProvider.class);
+        CapabilitiesHelper.registerCapability(IMjConnector.class);
+        CapabilitiesHelper.registerCapability(IMjReceiver.class);
+        CapabilitiesHelper.registerCapability(IMjRedstoneReceiver.class);
+        CapabilitiesHelper.registerCapability(IMjReadable.class);
+        CapabilitiesHelper.registerCapability(IMjPassiveProvider.class);
 
-        CAP_CONNECTOR = ensureRegistration(CAP_CONNECTOR_FIRST, IMjConnector.class);
-        CAP_RECEIVER = ensureRegistration(CAP_RECEIVER_FIRST, IMjReceiver.class);
-        CAP_REDSTONE_RECEIVER = ensureRegistration(CAP_REDSTONE_RECEIVER_FIRST, IMjRedstoneReceiver.class);
-        CAP_READABLE = ensureRegistration(CAP_READABLE_FIRST, IMjReadable.class);
-        CAP_PASSIVE_PROVIDER = ensureRegistration(CAP_PASSIVE_PROVIDER_FIRST, IMjPassiveProvider.class);
-    }
-
-    private static <T> void registerCapability(Class<T> clazz) {
-        CapabilityManager.INSTANCE.register(clazz, new VoidStorage<T>(), new Callable<T>() {
-            // No lambda because of java 6... :(
-            @Override
-            public T call() throws Exception {
-                throw new IllegalStateException("You must create your own instances!");
-            }
-        });
-    }
-
-    @Nonnull
-    private static <T> Capability<T> ensureRegistration(Capability<T> cap, Class<T> clazz) {
-        if (cap == null) {
-            throw new Error("Capability registration failed for " + clazz);
-        }
-        return cap;
-    }
-
-    private static class VoidStorage<T> implements Capability.IStorage<T> {
-        @Override
-        public NBTBase writeNBT(Capability<T> capability, T instance, EnumFacing side) {
-            throw new IllegalStateException("You must create your own instances!");
-        }
-
-        @Override
-        public void readNBT(Capability<T> capability, T instance, EnumFacing side, NBTBase nbt) {
-            throw new IllegalStateException("You must create your own instances!");
-        }
-    }
-
-    private static String formatMjInternal(double val) {
-        return MJ_DISPLAY_FORMAT.format(val);
+        CAP_CONNECTOR = CapabilitiesHelper.ensureRegistration(CAP_CONNECTOR_FIRST, IMjConnector.class);
+        CAP_RECEIVER = CapabilitiesHelper.ensureRegistration(CAP_RECEIVER_FIRST, IMjReceiver.class);
+        CAP_REDSTONE_RECEIVER = CapabilitiesHelper.ensureRegistration(CAP_REDSTONE_RECEIVER_FIRST, IMjRedstoneReceiver.class);
+        CAP_READABLE = CapabilitiesHelper.ensureRegistration(CAP_READABLE_FIRST, IMjReadable.class);
+        CAP_PASSIVE_PROVIDER = CapabilitiesHelper.ensureRegistration(CAP_PASSIVE_PROVIDER_FIRST, IMjPassiveProvider.class);
     }
 }
