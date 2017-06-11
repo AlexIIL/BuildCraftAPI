@@ -10,6 +10,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import net.minecraftforge.fluids.FluidStack;
@@ -31,7 +32,7 @@ public interface ISchematicEntity<S extends ISchematicEntity<S>> {
 
     Entity build(World world, BlockPos basePos);
 
-    Entity buildWithoutChecks(World world, BlockPos basePos);
+    Entity buildWithoutChecks(IBlockAccess world, BlockPos basePos);
 
     NBTTagCompound serializeNBT();
 

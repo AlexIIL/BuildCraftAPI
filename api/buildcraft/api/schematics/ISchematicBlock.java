@@ -35,7 +35,7 @@ public interface ISchematicBlock<S extends ISchematicBlock<S>> {
 
     boolean build(World world, BlockPos blockPos);
 
-    boolean buildWithoutChecks(World world, BlockPos blockPos);
+    boolean buildWithoutChecks(IBuildableRegion world, BlockPos blockPos);
 
     boolean isBuilt(World world, BlockPos blockPos);
 
