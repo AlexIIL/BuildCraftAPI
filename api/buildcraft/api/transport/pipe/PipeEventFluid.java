@@ -1,8 +1,11 @@
 package buildcraft.api.transport.pipe;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 
 import javax.annotation.Nonnull;
 
@@ -132,80 +135,77 @@ public abstract class PipeEventFluid extends PipeEvent {
         /** The priorities of each side. Stored inversely to the values given, so a higher priority will have a lower
          * value than a lower priority. */
         private final int[] priority = new int[6];
-        private final EnumSet<EnumFacing> allowed = EnumSet.allOf(EnumFacing.class);
+        private int allowed = 0b111_111;
 
         public SideCheck(IPipeHolder holder, IFlowFluid flow, FluidStack fluid) {
             super(holder, flow);
             this.fluid = fluid;
         }
 
+        public void reset() {
+            allowed = 0b111_111;
+        }
+
         /** Checks to see if a side if allowed. Note that this may return true even though a later handler might
          * disallow a side, so you should only use this to skip checking a side (for example a diamond pipe might not
          * check the filters for a specific side if its already been disallowed) */
         public boolean isAllowed(EnumFacing side) {
-            return allowed.contains(side);
+            return isAllowed(side.ordinal());
+        }
+
+        private boolean isAllowed(int index) {
+            return ((allowed >> index) & 1) == 1;
         }
 
         /** Disallows the specific side(s) from being a destination for the item. If no sides are allowed, then the
          * fluid will stay in the current pipe section. */
         public void disallow(EnumFacing... sides) {
             for (EnumFacing side : sides) {
-                allowed.remove(side);
+                allowed &= ~(1 << side.ordinal());
             }
         }
 
         public void disallowAll(Collection<EnumFacing> sides) {
-            allowed.removeAll(sides);
+            for (EnumFacing side : sides) {
+                allowed &= ~(1 << side.ordinal());
+            }
         }
 
         public void disallowAllExcept(EnumFacing side) {
-            if (allowed.contains(side)) {
-                allowed.clear();
-                allowed.add(side);
+            if (isAllowed(side)) {
+                allowed = 1 << side.ordinal();
             } else {
-                allowed.clear();
+                disallowAll();
             }
         }
 
         public void disallowAllExcept(EnumFacing... sides) {
             switch (sides.length) {
                 case 0: {
-                    allowed.clear();
+                    disallowAll();
                     return;
                 }
                 case 1: {
                     disallowAllExcept(sides[0]);
                     return;
                 }
-                case 2: {
-                    allowed.retainAll(EnumSet.of(sides[0], sides[1]));
-                    return;
-                }
-                case 3: {
-                    allowed.retainAll(EnumSet.of(sides[0], sides[1], sides[2]));
-                    return;
-                }
-                case 4: {
-                    allowed.retainAll(EnumSet.of(sides[0], sides[1], sides[2], sides[3]));
-                    return;
-                }
                 default: {
-                    EnumSet<EnumFacing> except = EnumSet.noneOf(EnumFacing.class);
-                    for (EnumFacing face : sides) {
-                        except.add(face);
+                    int retained = 0;
+                    for (EnumFacing side : sides) {
+                        retained |= 1 << side.ordinal();
                     }
-                    this.allowed.retainAll(except);
+                    allowed &= retained;
                     return;
                 }
             }
         }
 
         public void disallowAllExcept(Collection<EnumFacing> sides) {
-            allowed.retainAll(sides);
+            disallowAllExcept(sides.toArray(new EnumFacing[0]));
         }
 
         public void disallowAll() {
-            allowed.clear();
+            allowed = 0;
         }
 
         public void increasePriority(EnumFacing side) {
@@ -224,46 +224,57 @@ public abstract class PipeEventFluid extends PipeEvent {
             increasePriority(side, -by);
         }
 
-        public EnumSet<EnumFacing> getOrder() {
-            if (allowed.isEmpty()) {
-                return EnumSet.noneOf(EnumFacing.class);
-            }
-            if (allowed.size() == 1) {
-                return allowed;
-            }
-            priority_search: {
-                int val = priority[0];
-                for (int i = 1; i < priority.length; i++) {
-                    if (priority[i] != val) {
-                        break priority_search;
-                    }
-                }
-                // No need to work out the order when all destinations have the same priority
+        public int getAllowedBitSet() {
+            return allowed;
+        }
+
+        public boolean areAnyAllowed() {
+            return allowed != 0;
+        }
+
+        public int getAllowedCount() {
+            return Integer.bitCount(allowed);
+        }
+
+        public int getHighestPriorityAllowedBitSet() {
+            if (allowed == 0) {
+                return 0;
+            } else if (getAllowedCount() == 1) {
                 return allowed;
             }
 
-            int[] ordered = Arrays.copyOf(priority, 6);
-            Arrays.sort(ordered);
-            int last = 0;
+            // higher = lower, so start at max
+            int highestPriority = Integer.MAX_VALUE;
             for (int i = 0; i < 6; i++) {
-                int current = ordered[i];
-                if (i != 0 && current == last) {
-                    continue;
-                }
-                last = current;
-                EnumSet<EnumFacing> set = EnumSet.noneOf(EnumFacing.class);
-                for (EnumFacing face : EnumFacing.VALUES) {
-                    if (allowed.contains(face)) {
-                        if (priority[face.ordinal()] == current) {
-                            set.add(face);
-                        }
-                    }
-                }
-                if (set.size() > 0) {
-                    return set;
+                if (priority[i] < highestPriority && isAllowed(i)) {
+                    highestPriority = priority[i];
                 }
             }
-            return EnumSet.noneOf(EnumFacing.class);
+
+            int bitset = 0;
+            for (int i = 0; i < 6; i++) {
+                if (priority[i] == highestPriority && isAllowed(i)) {
+                    bitset |= 1 << i;
+                }
+            }
+            return bitset;
+        }
+
+        public List<EnumFacing> getRandomisedOrder() {
+            int bitset = getHighestPriorityAllowedBitSet();
+            if (bitset == 0) {
+                return Collections.emptyList();
+            }
+            List<EnumFacing> list = new ArrayList<>(6);
+            for (EnumFacing side : EnumFacing.values()) {
+                if ((bitset & (1 << side.ordinal())) != 0) {
+                    list.add(side);
+                }
+            }
+            if (list.size() > 1) {
+                Collections.shuffle(list);
+            }
+            return list;
         }
     }
 }
